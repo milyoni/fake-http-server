@@ -1,0 +1,27 @@
+{
+  "name": "api-authentication",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "node app"
+  },
+  "engines": {
+    "node": "0.8.x",
+    "npm": "1.1.x"
+  },
+  "dependencies": {
+    "backbone": "*",
+    "connect": "2.x",
+    "express": "3.0.x",
+    "express-errors": "0.2.x",
+    "express-http-routes": "git://github.com/milyoni/express-http-routes.git#master",
+    "jasmine-node": "*",
+    "jasmine-node-support": "git://github.com/milyoni/jasmine-node-support.git#master",
+    "kexec": "*",
+    "nodemon": "*",
+    "pipette": "0.9.x",
+    "redis-url": "0.1.0",
+    "underscore": "*",
+    "underscore.string": "2.3.x"
+  }
+}
