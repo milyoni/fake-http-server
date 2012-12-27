@@ -5,23 +5,12 @@ function FakeHttpServer(redisUrl) {
   this.redisUrl = redisUrl || FakeHttpServer.defaultRedisUrl;
 };
 
-FakeHttpServer.prototype = {
-  get: function() {
-    return FakeHttpServer.get(this.redisUrl);
-  },
-  put: function() {
-    return FakeHttpServer.put(this.redisUrl);
-  },
-  post: function() {
-    return FakeHttpServer.post(this.redisUrl);
-  },
-  del: function() {
-    return FakeHttpServer.del(this.redisUrl);
-  },
-  reset: function() {
-    return FakeHttpServer.reset(this.redisUrl);
-  }
-};
+FakeHttpServer.prototype = {};
+["get", "put", "post", "del", "reset"].forEach(function(method) {
+  FakeHttpServer.prototype[method] = function() {
+    return FakeHttpServer[method].apply(FakeHttpServer, [this.redisUrl].concat(arguments));
+  };
+});
 
 var redisHeader = "fake-http-server:";
 FakeHttpServer.defaultRedisUrl = "127.0.0.1::6379";
@@ -39,17 +28,17 @@ var handler = function(method, url, response, callback) {
     }
   });
 };
-FakeHttpServer.get = function(url, response, callback) {
-  handler("GET", url, response, callback);
+FakeHttpServer.get = function(redisUrl, url, response, callback) {
+  handler(redisUrl, "GET", url, response, callback);
 };
-FakeHttpServer.put = function(url, response, callback) {
-  handler("PUT", url, response, callback);
+FakeHttpServer.put = function(redisUrl, url, response, callback) {
+  handler(redisUrl, "PUT", url, response, callback);
 };
-FakeHttpServer.post = function(url, response, callback) {
-  handler("POST", url, response, callback);
+FakeHttpServer.post = function(redisUrl, url, response, callback) {
+  handler(redisUrl, "POST", url, response, callback);
 };
-FakeHttpServer.del = function(url, response, callback) {
-  handler("DELETE", url, response, callback);
+FakeHttpServer.del = function(redisUrl, url, response, callback) {
+  handler(redisUrl, "DELETE", url, response, callback);
 };
 
 FakeHttpServer.reset = function(redisUrl, callback) {
