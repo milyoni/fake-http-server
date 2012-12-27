@@ -3,75 +3,84 @@ var redis = require("redis-url")
 
 function FakeHttpServer(redisUrl) {
   this.redisUrl = redisUrl || FakeHttpServer.defaultRedisUrl;
+}
+
+FakeHttpServer.create = function(redisUrl) {
+  return new FakeHttpServer(redisUrl);
 };
 
 FakeHttpServer.prototype = {};
-["get", "put", "post", "del", "reset"].forEach(function(method) {
-  FakeHttpServer.prototype[method] = function() {
-    return FakeHttpServer[method].apply(FakeHttpServer, [this.redisUrl].concat(arguments));
-  };
-});
 
 var redisHeader = "fake-http-server:";
 FakeHttpServer.defaultRedisUrl = "127.0.0.1::6379";
 FakeHttpServer.key = function(method, url) {
   return redisHeader + method.toUpperCase() + ":" + url;
 };
-var handler = function(method, url, response, callback) {
-  callback = callback || function() {};
-  var redisClient = FakeHttpServer.createClient(redisUrl);
-  redisClient.set(FakeHttpServer.key(method, url), JSON.stringify(response), function(err) {
-    if (err) {
-      callback(err);
-    } else {
-      callback();
-    }
-  });
-};
-FakeHttpServer.get = function(redisUrl, url, response, callback) {
-  handler(redisUrl, "GET", url, response, callback);
-};
-FakeHttpServer.put = function(redisUrl, url, response, callback) {
-  handler(redisUrl, "PUT", url, response, callback);
-};
-FakeHttpServer.post = function(redisUrl, url, response, callback) {
-  handler(redisUrl, "POST", url, response, callback);
-};
-FakeHttpServer.del = function(redisUrl, url, response, callback) {
-  handler(redisUrl, "DELETE", url, response, callback);
+FakeHttpServer.prototype = {
+  get: function(url, response, callback) {
+    return this.define("GET", url, response, callback);
+  },
+  put: function(url, response, callback) {
+    return this.define("PUT", url, response, callback);
+  },
+  post: function(url, response, callback) {
+    return this.define("POST", url, response, callback);
+  },
+  del: function(url, response, callback) {
+    return this.define("DELETE", url, response, callback);
+  },
+  define: function(method, url, response, callback) {
+    callback = callback || function() {
+    };
+    var redisClient = FakeHttpServer.redisClient(this.redisUrl);
+    response = _.extend({statusCode: 200, text: ""}, response);
+    redisClient.set(FakeHttpServer.key(method, url), JSON.stringify(response), function(err) {
+      if (err) {
+        callback(err);
+      } else {
+        callback();
+      }
+      redisClient.end();
+    })
+  },
+  reset: function(callback) {
+    callback = callback || function() {};
+    var redisClient = FakeHttpServer.redisClient(this.redisUrl);
+    redisClient.keys(redisHeader + "*", function(err, keys) {
+      if (err) {
+        callback(err);
+      } else {
+        var errors = [];
+        var step1 = function() {
+          var done = _.after(keys.length, step2);
+          try {
+            _.each(keys, function(key) {
+              redisClient.del(key, function(err) {
+                if (err) {
+                  errors.push(err);
+                }
+                done();
+              });
+            });
+          } catch (e) {
+            step2();
+          }
+        };
+        var step2 = function() {
+          if (errors.length > 0) {
+            callback(errors);
+          } else {
+            callback();
+          }
+          redisClient.end();
+        };
+        step1();
+      }
+    });
+  }
 };
 
-FakeHttpServer.reset = function(redisUrl, callback) {
-  var redisClient = FakeHttpServer.createClient(redisUrl);
-  callback = callback || function() {};
-  redisClient.keys(redisHeader + ":*", function(err, keys) {
-    if (err) {
-      callback(err);
-    } else {
-      var errors = [];
-      var step1 = function() {
-        _.times(keys.length, step2);
-        keys.forEach(function(key) {
-          redisClient.del(key, function(err, callback) {
-            if (err) {
-              errors.push(err);
-            }
-            step2();
-          });
-        });
-      };
-      var step2 = function() {
-        if (errors.length > 0) {
-          callback(errors);
-        } else {
-          callback();
-        }
-      };
-      step1();
-    }
-  });
-};
-FakeHttpServer.redisClient = function(redisUrl) {
+FakeHttpServer.redisClient = function(redisUrl, callback) {
   return redis.createClient(redisUrl || FakeHttpServer.defaultRedisUrl);
 };
 

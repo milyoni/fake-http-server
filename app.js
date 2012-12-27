@@ -19,6 +19,7 @@ app.configure(function() {
 });
 
 app.set("redis_url", config.redis_url);
+require("./index").defaultRedisUrl = config.redis_url;
 
 routes.attach(app);
 

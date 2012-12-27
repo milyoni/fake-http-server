@@ -1,39 +1,57 @@
 require("./");
-var path = require('path')
-  , _ = require('underscore')._
-  , Backbone = require('backbone')
-  , http = require('http')
-  , pipette = require("pipette")
-  , support = projRequire("/spec/support")
-  , redis = require("redis-url")
-  , url = require("url")
+var support = projRequire("/spec/support")
+  , fakeHttpServer = projRequire("/index").create()
   , request = require("request");
 
 require("jasmine-node-support").exec(__filename);
 
-describe("GET", function() {
-  var key, redisClient;
-  beforeEach(function() {
-    key = "fake-http-server:GET:/foobar";
-    redisClient = redis.createClient();
+describe("http", function() {
+  beforeEach(function(done) {
+    fakeHttpServer.reset(done);
   });
 
-  afterEach(function() {
-    redisClient.del(key);
-    redisClient.end();
+  afterEach(function(done) {
+    fakeHttpServer.reset(done);
   });
 
-  describe("entry in redis exists", function() {
-    it("responds with what is in redis", function(done) {
-      redisClient.set(key, JSON.stringify({status: 200, body: "baz"}), function(error) {
-        expect(error).toBeFalsy();
+  describe("GET", function() {
+    describe("entry in redis exists", function() {
+      it("responds with what is in redis", function(done) {
+        fakeHttpServer.get(support.testServer + "/foobar", {
+          statusCode: 200,
+          body: "baz"
+        }, function(err) {
+          expect(err).toBeFalsy();
+          if (err) {
+            done();
+          } else {
+            request.get(
+              support.testServer + "/foobar",
+              {},
+              function(err, response, body) {
+                expect(err).toBeFalsy();
+                if (!err) {
+                  expect(response.statusCode).toEqual(200);
+                  expect(body).toEqual("baz");
+                }
+                done();
+              }
+            );
+          }
+        });
+      });
+    });
+
+    describe("entry in redis does not exist", function() {
+      it("responds with a 404", function(done) {
         request.get(
           support.testServer + "/foobar",
           {},
           function(error, response, body) {
             expect(error).toBeFalsy();
-            expect(response.statusCode).toEqual(200);
-            expect(body).toEqual("baz");
+            if (!error) {
+              expect(response.statusCode).toEqual(404);
+            }
             done();
           }
         );
@@ -41,43 +59,37 @@ describe("GET", function() {
     });
   });
 
-  describe("entry in redis does not exist", function() {
-    it("responds with a 404", function(done) {
-      request.get(
-        support.testServer + "/foobar",
-        {},
-        function(error, response, body) {
+  describe("PUT", function() {
+    describe("entry in redis exists", function() {
+      it("responds with what is in redis", function(done) {
+        fakeHttpServer.put(support.testServer + "/foobar", {
+          statusCode: 200,
+          body: "baz"
+        }, function(error) {
           expect(error).toBeFalsy();
-          expect(response.statusCode).toEqual(404);
-          done();
-        }
-      );
+          request.put(
+            support.testServer + "/foobar",
+            {},
+            function(error, response, body) {
+              expect(error).toBeFalsy();
+              expect(body).toEqual("baz");
+              done();
+            }
+          );
+        });
+      });
     });
-  });
-});
 
-describe("PUT", function() {
-  var key, redisClient;
-  beforeEach(function() {
-    key = "fake-http-server:PUT:/foobar";
-    redisClient = redis.createClient();
-  });
-
-  afterEach(function() {
-    redisClient.del(key);
-    redisClient.end();
-  });
-
-  describe("entry in redis exists", function() {
-    it("responds with what is in redis", function(done) {
-      redisClient.set(key, JSON.stringify({status: 200, body: "baz"}), function(error) {
-        expect(error).toBeFalsy();
+    describe("entry in redis does not exist", function() {
+      it("responds with a 404", function(done) {
         request.put(
           support.testServer + "/foobar",
           {},
           function(error, response, body) {
             expect(error).toBeFalsy();
-            expect(body).toEqual("baz");
+            if (!error) {
+              expect(response.statusCode).toEqual(404);
+            }
             done();
           }
         );
@@ -85,43 +97,39 @@ describe("PUT", function() {
     });
   });
 
-  describe("entry in redis does not exist", function() {
-    it("responds with a 404", function(done) {
-      request.put(
-        support.testServer + "/foobar",
-        {},
-        function(error, response, body) {
+  describe("POST", function() {
+    describe("entry in redis exists", function() {
+      it("responds with what is in redis", function(done) {
+        fakeHttpServer.post(support.testServer + "/foobar", {
+          statusCode: 200,
+          body: "baz"
+        }, function(error) {
           expect(error).toBeFalsy();
-          expect(response.statusCode).toEqual(404);
-          done();
-        }
-      );
+          request.post(
+            support.testServer + "/foobar",
+            {},
+            function(error, response, body) {
+              expect(error).toBeFalsy();
+              if (!error) {
+                expect(body).toEqual("baz");
+              }
+              done();
+            }
+          );
+        });
+      });
     });
-  });
-});
 
-describe("POST", function() {
-  var key, redisClient;
-  beforeEach(function() {
-    key = "fake-http-server:POST:/foobar";
-    redisClient = redis.createClient();
-  });
-
-  afterEach(function() {
-    redisClient.del(key);
-    redisClient.end();
-  });
-
-  describe("entry in redis exists", function() {
-    it("responds with what is in redis", function(done) {
-      redisClient.set(key, JSON.stringify({status: 200, body: "baz"}), function(error) {
-        expect(error).toBeFalsy();
+    describe("entry in redis does not exist", function() {
+      it("responds with a 404", function(done) {
         request.post(
           support.testServer + "/foobar",
           {},
           function(error, response, body) {
             expect(error).toBeFalsy();
-            expect(body).toEqual("baz");
+            if (!error) {
+              expect(response.statusCode).toEqual(404);
+            }
             done();
           }
         );
@@ -129,59 +137,41 @@ describe("POST", function() {
     });
   });
 
-  describe("entry in redis does not exist", function() {
-    it("responds with a 404", function(done) {
-      request.post(
-        support.testServer + "/foobar",
-        {},
-        function(error, response, body) {
+  describe("DELETE", function() {
+    describe("entry in redis exists", function() {
+      it("responds with what is in redis", function(done) {
+        fakeHttpServer.del(support.testServer + "/foobar", {
+          statusCode: 200,
+          body: "baz"
+        }, function(error) {
           expect(error).toBeFalsy();
-          expect(response.statusCode).toEqual(404);
-          done();
-        }
-      );
+          request.del(
+            support.testServer + "/foobar",
+            function(error, response, body) {
+              expect(error).toBeFalsy();
+              if (!error) {
+                expect(body).toEqual("baz");
+              }
+              done();
+            }
+          );
+        });
+      });
     });
-  });
-});
 
-describe("DELETE", function() {
-  var key, redisClient;
-  beforeEach(function() {
-    key = "fake-http-server:DELETE:/foobar";
-    redisClient = redis.createClient();
-  });
-
-  afterEach(function() {
-    redisClient.del(key);
-    redisClient.end();
-  });
-
-  describe("entry in redis exists", function() {
-    it("responds with what is in redis", function(done) {
-      redisClient.set(key, JSON.stringify({status: 200, body: "baz"}), function(error) {
-        expect(error).toBeFalsy();
+    describe("entry in redis does not exist", function() {
+      it("responds with a 404", function(done) {
         request.del(
           support.testServer + "/foobar",
           function(error, response, body) {
             expect(error).toBeFalsy();
-            expect(body).toEqual("baz");
+            if (!error) {
+              expect(response.statusCode).toEqual(404);
+            }
             done();
           }
         );
       });
-    });
-  });
-
-  describe("entry in redis does not exist", function() {
-    it("responds with a 404", function(done) {
-      request.del(
-        support.testServer + "/foobar",
-        function(error, response, body) {
-          expect(error).toBeFalsy();
-          expect(response.statusCode).toEqual(404);
-          done();
-        }
-      );
     });
   });
 });
