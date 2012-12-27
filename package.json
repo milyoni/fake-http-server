@@ -1,7 +1,7 @@
 {
-  "name": "api-authentication",
+  "name": "fake-http-server",
   "version": "0.1.0",
-  "private": true,
+  "main": "index",
   "scripts": {
     "start": "node app"
   },
