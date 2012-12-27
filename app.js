@@ -18,7 +18,6 @@ app.configure(function() {
   app.use(express.static(path.join(__dirname, 'public')));
 });
 
-app.set('database_url', config.database_url);
 app.set("redis_url", config.redis_url);
 
 routes.attach(app);

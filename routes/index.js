@@ -11,7 +11,8 @@ var handler = function(req, res, next) {
   var redisClient = redis.createClient();
   redisClient.get(key, function(error, json) {
     if (json) {
-      res.send(200, json);
+      var data = JSON.parse(json);
+      res.send(data.status, data.body);
       res.end();
     } else {
       next(errors.NotFound);

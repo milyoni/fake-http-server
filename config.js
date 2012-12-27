@@ -1,5 +1,5 @@
 var exports = module.exports;
-exports.port = process.env.PORT || 3005;
+exports.port = process.env.PORT || 3006;
 
 exports.redis_url = process.env.REDIS_URL || "redis://localhost:6379/";
 

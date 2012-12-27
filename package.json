@@ -18,12 +18,9 @@
     "jasmine-node": "*",
     "jasmine-node-support": "git://github.com/milyoni/jasmine-node-support.git#master",
     "kexec": "*",
-    "nodemon": "*",
-    "pipette": "0.9.x",
     "redis-url": "0.1.0",
     "request": "2.11.x",
-    "underscore": "*",
-    "underscore.string": "2.3.x"
+    "underscore": "*"
   },
   "license": "MIT"
 }
