@@ -17,7 +17,7 @@ describe("http", function() {
   describe("GET", function() {
     describe("entry in redis exists", function() {
       it("responds with what is in redis", function(done) {
-        fakeHttpServer.get(support.testServer + "/foobar", {
+        fakeHttpServer.get(support.testServer + "/foobar", {}, {
           statusCode: 200,
           body: "baz"
         }, function(err) {
@@ -62,7 +62,7 @@ describe("http", function() {
   describe("PUT", function() {
     describe("entry in redis exists", function() {
       it("responds with what is in redis", function(done) {
-        fakeHttpServer.put(support.testServer + "/foobar", {
+        fakeHttpServer.put(support.testServer + "/foobar", {}, {
           statusCode: 200,
           body: "baz"
         }, function(error) {
@@ -99,19 +99,40 @@ describe("http", function() {
 
   describe("POST", function() {
     describe("entry in redis exists", function() {
-      it("responds with what is in redis", function(done) {
-        fakeHttpServer.post(support.testServer + "/foobar", {
+      beforeEach(function(done) {
+        fakeHttpServer.post(support.testServer + "/foobar", {body: {'foo': 'bar'}}, {
           statusCode: 200,
           body: "baz"
         }, function(error) {
           expect(error).toBeFalsy();
+          done();
+        });
+      });
+      describe("with correct body params", function() {
+        it("responds with what is in redis", function(done) {
+          request.post(
+            support.testServer + "/foobar",
+            {form: {'foo': 'bar'}},
+            function(error, response, body) {
+              expect(error).toBeFalsy();
+              if (!error) {
+                expect(body).toEqual("baz");
+              }
+              done();
+            }
+          );
+        });
+      });
+
+      describe("with incorrect body params", function() {
+        it("responds with a 404", function(done) {
           request.post(
             support.testServer + "/foobar",
             {},
             function(error, response, body) {
               expect(error).toBeFalsy();
               if (!error) {
-                expect(body).toEqual("baz");
+                expect(response.statusCode).toEqual(404);
               }
               done();
             }
@@ -140,7 +161,7 @@ describe("http", function() {
   describe("DELETE", function() {
     describe("entry in redis exists", function() {
       it("responds with what is in redis", function(done) {
-        fakeHttpServer.del(support.testServer + "/foobar", {
+        fakeHttpServer.del(support.testServer + "/foobar", {}, {
           statusCode: 200,
           body: "baz"
         }, function(error) {

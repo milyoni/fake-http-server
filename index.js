@@ -13,28 +13,31 @@ FakeHttpServer.prototype = {};
 
 var redisHeader = "fake-http-server:";
 FakeHttpServer.defaultRedisUrl = "127.0.0.1::6379";
-FakeHttpServer.key = function(method, url) {
-  return redisHeader + method.toUpperCase() + ":" + url;
+FakeHttpServer.key = function(method, url, options) {
+  var bodyStr = "";
+  if (options && options.body && _.size(options.body) > 0) {
+    bodyStr = ":body-" + JSON.stringify(options.body);
+  }
+  return redisHeader + method.toUpperCase() + ":" + url + bodyStr;
 };
 FakeHttpServer.prototype = {
-  get: function(url, response, callback) {
-    return this.define("GET", url, response, callback);
+  get: function(url, options, response, callback) {
+    return this.define("GET", url, {}, response, callback);
   },
-  put: function(url, response, callback) {
-    return this.define("PUT", url, response, callback);
+  put: function(url, options, response, callback) {
+    return this.define("PUT", url, options, response, callback);
   },
-  post: function(url, response, callback) {
-    return this.define("POST", url, response, callback);
+  post: function(url, options, response, callback) {
+    return this.define("POST", url, options, response, callback);
   },
-  del: function(url, response, callback) {
-    return this.define("DELETE", url, response, callback);
+  del: function(url, options, response, callback) {
+    return this.define("DELETE", url, {}, response, callback);
   },
-  define: function(method, url, response, callback) {
-    callback = callback || function() {
-    };
+  define: function(method, url, options, response, callback) {
+    callback = callback || function() {};
     var redisClient = FakeHttpServer.redisClient(this.redisUrl);
     response = _.extend({statusCode: 200, text: ""}, response);
-    redisClient.set(FakeHttpServer.key(method, url), JSON.stringify(response), function(err) {
+    redisClient.set(FakeHttpServer.key(method, url, options), JSON.stringify(response), function(err) {
       if (err) {
         callback(err);
       } else {
