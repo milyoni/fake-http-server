@@ -2,8 +2,7 @@ var _ = require('underscore')._
   , errors = require("express-errors")
   , routes = require("express-http-routes")
   , redis = require("redis-url")
-  , url = require("url")
-  , fakeHttpServer = require("../index").create();
+  , url = require("url");
 
 _.extend(module.exports, routes);
 
