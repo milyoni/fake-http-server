@@ -12,14 +12,18 @@ var handler = function(req, res, next) {
   var u = protocol + "://" + req.headers.host + req.path + url.format({query: req.query});
   var key = fakeHttpServer.key(req.method, u, {body: req.body});
   var redisClient = redis.createClient();
-  redisClient.get(key, function(error, json) {
+  redisClient.get(key, function(err, json) {
     try {
-      if (json) {
-        var data = JSON.parse(json);
-        res.send(data.statusCode, data.body);
-        res.end();
+      if (err) {
+        next(err);
       } else {
-        next(errors.NotFound);
+        if (json) {
+          var data = JSON.parse(json);
+          res.send(data.statusCode, data.body);
+          res.end();
+        } else {
+          next(errors.NotFound);
+        }
       }
     } catch(e) {
       next(e);
