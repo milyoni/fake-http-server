@@ -16,7 +16,7 @@ describe("http", function() {
 
   describe("GET", function() {
     describe("entry in redis exists", function() {
-      it("responds with what is in redis", function(done) {
+      beforeEach(function(done) {
         fakeHttpServer.get(support.testServer + "/foobar", {}, {
           statusCode: 200,
           body: "baz"
@@ -25,21 +25,37 @@ describe("http", function() {
           if (err) {
             done();
           } else {
-            request.get(
-              support.testServer + "/foobar",
-              {},
-              function(err, response, body) {
-                expect(err).toBeFalsy();
-                if (!err) {
-                  expect(response.statusCode).toEqual(200);
-                  expect(body).toEqual("baz");
-                }
-                done();
-              }
-            );
+            done();
           }
         });
       });
+      it("responds with what is in redis", function(done) {
+        request.get(
+          support.testServer + "/foobar",
+          {},
+          function(err, response, body) {
+            expect(err).toBeFalsy();
+            if (!err) {
+              expect(response.statusCode).toEqual(200);
+              expect(body).toEqual("baz");
+            }
+            done();
+          }
+        );
+      });
+      it("updates the request count", function(done) {
+        request.get(
+          support.testServer + "/foobar",
+          {},
+          function(err, response, body) {
+            expect(err).toBeFalsy();
+            fakeHttpServer.getRequests(support.testServer + "/foobar", {}, function(err, count) {
+              expect(count).toEqual('1');
+            })
+            done();
+          }
+        );
+      })
     });
 
     describe("entry in redis does not exist", function() {
@@ -61,23 +77,41 @@ describe("http", function() {
 
   describe("PUT", function() {
     describe("entry in redis exists", function() {
-      it("responds with what is in redis", function(done) {
+      beforeEach(function(done) {
         fakeHttpServer.put(support.testServer + "/foobar", {}, {
           statusCode: 200,
           body: "baz"
         }, function(error) {
           expect(error).toBeFalsy();
-          request.put(
-            support.testServer + "/foobar",
-            {},
-            function(error, response, body) {
-              expect(error).toBeFalsy();
-              expect(body).toEqual("baz");
-              done();
-            }
-          );
+          done();
         });
+
       });
+      it("responds with what is in redis", function(done) {
+        request.put(
+          support.testServer + "/foobar",
+          {},
+          function(error, response, body) {
+            expect(error).toBeFalsy();
+            expect(body).toEqual("baz");
+            done();
+          }
+        );
+      });
+      it("updates the request count", function(done) {
+        request.put(
+          support.testServer + "/foobar",
+          {},
+          function(err, response, body) {
+            expect(err).toBeFalsy();
+            fakeHttpServer.putRequests(support.testServer + "/foobar", {}, function(err, count) {
+              expect(count).toEqual('1');
+            })
+            done();
+          }
+        );
+      })
+
     });
 
     describe("entry in redis does not exist", function() {
@@ -122,6 +156,19 @@ describe("http", function() {
             }
           );
         });
+        it("updates the request count", function(done) {
+          request.post(
+            support.testServer + "/foobar",
+            {form: {'foo': 'bar'}},
+            function(err, response, body) {
+              expect(err).toBeFalsy();
+              fakeHttpServer.postRequests(support.testServer + "/foobar", {}, function(err, count) {
+                expect(count).toEqual('1');
+              })
+              done();
+            }
+          );
+        })
       });
 
       describe("with incorrect body params", function() {
@@ -138,6 +185,20 @@ describe("http", function() {
             }
           );
         });
+
+        it("does not increment the request count", function(done) {
+          request.post(
+            support.testServer + "/foobar",
+            {},
+            function(err, response, body) {
+              expect(err).toBeFalsy();
+              fakeHttpServer.postRequests(support.testServer + "/foobar", {}, function(err, count) {
+                expect(count).toEqual('0');
+              })
+              done();
+            }
+          );
+        })
       });
     });
 
@@ -160,24 +221,40 @@ describe("http", function() {
 
   describe("DELETE", function() {
     describe("entry in redis exists", function() {
-      it("responds with what is in redis", function(done) {
+      beforeEach(function(done) {
         fakeHttpServer.del(support.testServer + "/foobar", {}, {
           statusCode: 200,
           body: "baz"
         }, function(error) {
           expect(error).toBeFalsy();
-          request.del(
-            support.testServer + "/foobar",
-            function(error, response, body) {
-              expect(error).toBeFalsy();
-              if (!error) {
-                expect(body).toEqual("baz");
-              }
-              done();
-            }
-          );
+          done();
         });
+
       });
+      it("responds with what is in redis", function(done) {
+        request.del(
+          support.testServer + "/foobar",
+          function(error, response, body) {
+            expect(error).toBeFalsy();
+            if (!error) {
+              expect(body).toEqual("baz");
+            }
+            done();
+          }
+        );
+      });
+      it("updates the request count", function(done) {
+        request.del(
+          support.testServer + "/foobar",
+          function(err, response, body) {
+            expect(err).toBeFalsy();
+            fakeHttpServer.delRequests(support.testServer + "/foobar", {}, function(err, count) {
+              expect(count).toEqual('1');
+            })
+            done();
+          }
+        );
+      })
     });
 
     describe("entry in redis does not exist", function() {

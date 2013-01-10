@@ -20,6 +20,11 @@ FakeHttpServer.key = function(method, url, options) {
   }
   return redisHeader + method.toUpperCase() + ":" + url + bodyStr;
 };
+
+FakeHttpServer.requestsKey = function(method, url, options) {
+  return redisHeader + method.toUpperCase() + ":" + url + ":requests";
+};
+
 FakeHttpServer.prototype = {
   get: function(url, options, response, callback) {
     return this.define("GET", url, {}, response, callback);
@@ -40,10 +45,40 @@ FakeHttpServer.prototype = {
     redisClient.set(FakeHttpServer.key(method, url, options), JSON.stringify(response), function(err) {
       if (err) {
         callback(err);
+        redisClient.end();
       } else {
-        callback();
+        redisClient.set(FakeHttpServer.requestsKey(method, url, options), 0, function(err) {
+          if (err) {
+            callback(err);
+          } else {
+            callback();
+          }
+          redisClient.end();
+        })
       }
-      redisClient.end();
+    })
+  },
+  getRequests: function(url, options, callback) {
+    return this.defineRequests("GET", url, {}, callback);
+  },
+  putRequests: function(url, options, callback) {
+    return this.defineRequests("PUT", url, options, callback);
+  },
+  postRequests: function(url, options, callback) {
+    return this.defineRequests("POST", url, options, callback);
+  },
+  delRequests: function(url, options, callback) {
+    return this.defineRequests("DELETE", url, {}, callback);
+  },
+  defineRequests: function(method, url, options, callback) {
+    callback = callback || function() {};
+    var redisClient = FakeHttpServer.redisClient(this.redisUrl);
+    redisClient.get(FakeHttpServer.requestsKey(method, url, options), function(err, response) {
+      if (err) {
+        callback(err)
+      } else {
+        callback(null, response)
+      }
     })
   },
   reset: function(callback) {
