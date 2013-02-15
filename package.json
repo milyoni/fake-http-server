@@ -16,7 +16,7 @@
     "express-errors": "0.2.x",
     "express-http-routes": "git://github.com/milyoni/express-http-routes.git#master",
     "jasmine-node": "*",
-    "jasmine-node-support": "git://github.com/milyoni/jasmine-node-support.git#master",
+    "jasmine-node-exec": "0.1.x",
     "kexec": "*",
     "redis-url": "0.1.0",
     "request": "2.11.x",
