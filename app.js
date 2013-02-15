@@ -21,7 +21,7 @@ app.configure(function() {
 app.set("redis_url", config.redis_url);
 require("./index").defaultRedisUrl = config.redis_url;
 
-routes.attach(app);
+routes.attach({app: app});
 
 require('http').createServer(app).listen(app.get('port'), function() {
   console.log("Express server listening on port " + app.get('port'));
