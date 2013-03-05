@@ -1,6 +1,6 @@
 {
   "name": "fake-http-server",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "main": "index",
   "scripts": {
     "start": "node app"
@@ -14,7 +14,7 @@
     "connect": "2.x",
     "express": "3.0.x",
     "express-errors": "0.2.x",
-    "express-http-routes": "git://github.com/milyoni/express-http-routes.git#master",
+    "express-http-routes": "0.2.x",
     "jasmine-node": "*",
     "jasmine-node-exec": "0.1.x",
     "kexec": "*",
