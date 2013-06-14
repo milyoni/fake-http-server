@@ -1,6 +1,5 @@
-require("./");
-var support = projRequire("/spec/support")
-  , fakeHttpServer = projRequire("/index").create()
+var support = require("./support")
+  , fakeHttpServer = require("../index").create()
   , request = require("request");
 
 require("jasmine-node-support").exec(__filename);

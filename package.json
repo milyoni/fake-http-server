@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "backbone": "*",
+    "colors":"*",
     "connect": "2.x",
     "express": "3.0.x",
     "express-errors": "0.2.x",
