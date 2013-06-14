@@ -25,5 +25,5 @@ routes.attach({app: app});
 
 require('http').createServer(app).listen(app.get('port'), function() {
   var colors = require('colors');
-  console.info("[fake-http-server]".blue + "\t" + "listening on port:".white + "\t" + app.get('port').toString().green);
+  console.info("[fake-http-server]".blue + "\t" + "listening on port: ".white + app.get('port').toString().green);
 });
