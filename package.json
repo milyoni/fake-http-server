@@ -23,5 +23,8 @@
     "request": "2.11.x",
     "underscore": "*"
   },
+  "devDependencies":{
+    "nodemon":"*"
+  },
   "license": "MIT"
 }
